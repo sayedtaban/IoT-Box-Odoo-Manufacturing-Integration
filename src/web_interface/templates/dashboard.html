@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - IoT Box{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+            <small class="text-muted">Real-time IoT Box Status</small>
+        </h1>
+    </div>
+</div>
+
+<!-- Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="device-count">-</h4>
+                        <p class="card-text">Connected Devices</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-plug fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="scan-count">-</h4>
+                        <p class="card-text">Scans Today</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-barcode fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="buffer-count">-</h4>
+                        <p class="card-text">Buffer Items</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-database fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="work-order-status">-</h4>
+                        <p class="card-text">Work Order</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-cogs fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <!-- Device Status -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-plug me-2"></i>Device Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="device-list">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Work Order Status -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2"></i>Work Order Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="work-order-info">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2"></i>Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="recent-activity">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <button class="btn btn-primary w-100 mb-2" onclick="syncBuffer()">
+                            <i class="fas fa-sync me-2"></i>Sync Buffer
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-success w-100 mb-2" onclick="testScan()">
+                            <i class="fas fa-barcode me-2"></i>Test Scan
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-warning w-100 mb-2" onclick="clearWorkOrder()">
+                            <i class="fas fa-times me-2"></i>Clear Work Order
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-info w-100 mb-2" onclick="refreshStatus()">
+                            <i class="fas fa-refresh me-2"></i>Refresh Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Work Order Context Modal -->
+<div class="modal fade" id="workOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Set Work Order Context</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="workOrderForm">
+                    <div class="mb-3">
+                        <label for="workOrderId" class="form-label">Work Order ID</label>
+                        <input type="text" class="form-control" id="workOrderId" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="operatorId" class="form-label">Operator ID</label>
+                        <input type="text" class="form-control" id="operatorId" value="operator_001">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="setWorkOrderContext()">Set Context</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Scan Modal -->
+<div class="modal fade" id="testScanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Test Scan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="testScanForm">
+                    <div class="mb-3">
+                        <label for="scanData" class="form-label">Scan Data</label>
+                        <input type="text" class="form-control" id="scanData" placeholder="Enter barcode or RFID" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="scanType" class="form-label">Scan Type</label>
+                        <select class="form-select" id="scanType">
+                            <option value="barcode">Barcode</option>
+                            <option value="rfid">RFID</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="deviceId" class="form-label">Device ID</label>
+                        <input type="text" class="form-control" id="deviceId" value="test_device" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitTestScan()">Submit Scan</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Dashboard JavaScript
+let statusInterval;
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadStatus();
+    statusInterval = setInterval(loadStatus, 5000); // Update every 5 seconds
+});
+
+// Load system status
+async function loadStatus() {
+    try {
+        const response = await fetch('/api/status');
+        const status = await response.json();
+        
+        updateStatusCards(status);
+        updateDeviceList(status.devices);
+        updateWorkOrderInfo(status.odoo);
+        
+    } catch (error) {
+        console.error('Error loading status:', error);
+    }
+}
+
+// Update status cards
+function updateStatusCards(status) {
+    document.getElementById('device-count').textContent = status.devices.connected_devices || 0;
+    document.getElementById('scan-count').textContent = status.events.total_events || 0;
+    document.getElementById('buffer-count').textContent = status.buffer.total_entries || 0;
+    
+    const workOrderStatus = status.odoo.work_order;
+    if (workOrderStatus && workOrderStatus.has_context) {
+        document.getElementById('work-order-status').textContent = workOrderStatus.work_order_id;
+    } else {
+        document.getElementById('work-order-status').textContent = 'None';
+    }
+}
+
+// Update device list
+function updateDeviceList(devices) {
+    const deviceList = document.getElementById('device-list');
+    
+    if (!devices || !devices.devices) {
+        deviceList.innerHTML = '<p class="text-muted">No devices available</p>';
+        return;
+    }
+    
+    let html = '';
+    devices.devices.forEach(device => {
+        const statusClass = device.status === 'connected' ? 'success' : 'danger';
+        const statusIcon = device.status === 'connected' ? 'check-circle' : 'times-circle';
+        
+        html += `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <strong>${device.name}</strong>
+                    <br>
+                    <small class="text-muted">${device.type} • ${device.id}</small>
+                </div>
+                <div>
+                    <span class="badge bg-${statusClass}">
+                        <i class="fas fa-${statusIcon} me-1"></i>${device.status}
+                    </span>
+                </div>
+            </div>
+        `;
+    });
+    
+    deviceList.innerHTML = html || '<p class="text-muted">No devices available</p>';
+}
+
+// Update work order info
+function updateWorkOrderInfo(odoo) {
+    const workOrderInfo = document.getElementById('work-order-info');
+    
+    if (!odoo || !odoo.work_order || !odoo.work_order.has_context) {
+        workOrderInfo.innerHTML = `
+            <p class="text-muted">No work order context set</p>
+            <button class="btn btn-primary btn-sm" onclick="showWorkOrderModal()">
+                <i class="fas fa-plus me-1"></i>Set Work Order
+            </button>
+        `;
+        return;
+    }
+    
+    const wo = odoo.work_order;
+    workOrderInfo.innerHTML = `
+        <div class="mb-3">
+            <strong>Work Order:</strong> ${wo.work_order_id}
+        </div>
+        <div class="mb-3">
+            <strong>Product:</strong> ${wo.product_name || 'Unknown'}
+        </div>
+        <div class="mb-3">
+            <strong>Progress:</strong>
+            <div class="progress">
+                <div class="progress-bar" style="width: ${wo.progress_percentage || 0}%"></div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <strong>Components:</strong> ${wo.components_consumed || 0} / ${wo.components_count || 0}
+        </div>
+        <button class="btn btn-warning btn-sm" onclick="clearWorkOrder()">
+            <i class="fas fa-times me-1"></i>Clear Context
+        </button>
+    `;
+}
+
+// Show work order modal
+function showWorkOrderModal() {
+    const modal = new bootstrap.Modal(document.getElementById('workOrderModal'));
+    modal.show();
+}
+
+// Set work order context
+async function setWorkOrderContext() {
+    const workOrderId = document.getElementById('workOrderId').value;
+    const operatorId = document.getElementById('operatorId').value;
+    
+    try {
+        const response = await fetch('/api/work-order/set-context', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                work_order_id: workOrderId,
+                operator_id: operatorId
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            bootstrap.Modal.getInstance(document.getElementById('workOrderModal')).hide();
+            loadStatus(); // Refresh status
+            showAlert('Work order context set successfully', 'success');
+        } else {
+            showAlert('Error setting work order context: ' + result.error, 'danger');
+        }
+        
+    } catch (error) {
+        console.error('Error setting work order context:', error);
+        showAlert('Error setting work order context', 'danger');
+    }
+}
+
+// Test scan
+function testScan() {
+    const modal = new bootstrap.Modal(document.getElementById('testScanModal'));
+    modal.show();
+}
+
+// Submit test scan
+async function submitTestScan() {
+    const scanData = document.getElementById('scanData').value;
+    const scanType = document.getElementById('scanType').value;
+    const deviceId = document.getElementById('deviceId').value;
+    
+    try {
+        const response = await fetch('/api/scan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                device_id: deviceId,
+                scan_data: scanData,
+                scan_type: scanType
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            bootstrap.Modal.getInstance(document.getElementById('testScanModal')).hide();
+            loadStatus(); // Refresh status
+            showAlert('Scan submitted successfully', 'success');
+        } else {
+            showAlert('Error submitting scan: ' + result.error, 'danger');
+        }
+        
+    } catch (error) {
+        console.error('Error submitting scan:', error);
+        showAlert('Error submitting scan', 'danger');
+    }
+}
+
+// Sync buffer
+async function syncBuffer() {
+    try {
+        const response = await fetch('/api/buffer/sync', {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('Buffer synced successfully', 'success');
+            loadStatus(); // Refresh status
+        } else {
+            showAlert('Error syncing buffer: ' + result.message, 'danger');
+        }
+        
+    } catch (error) {
+        console.error('Error syncing buffer:', error);
+        showAlert('Error syncing buffer', 'danger');
+    }
+}
+
+// Clear work order
+async function clearWorkOrder() {
+    // This would need to be implemented in the backend
+    showAlert('Work order context cleared', 'info');
+    loadStatus(); // Refresh status
+}
+
+// Refresh status
+function refreshStatus() {
+    loadStatus();
+    showAlert('Status refreshed', 'info');
+}
+
+// Show alert
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.querySelector('main').insertBefore(alertDiv, document.querySelector('main').firstChild);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    if (statusInterval) {
+        clearInterval(statusInterval);
+    }
+});
+</script>
+{% endblock %}

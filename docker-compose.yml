@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  iot-box:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.iotbox
+    container_name: iot-box
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - /dev:/dev:rw  # For USB device access
+    environment:
+      - PYTHONPATH=/app
+      - CONFIG_PATH=/app/config/config.yaml
+    devices:
+      - /dev/bus/usb:/dev/bus/usb:rw  # USB device access
+    privileged: true
+    restart: unless-stopped
+    networks:
+      - iot-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: iot-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - iot-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: iot-postgres
+    environment:
+      - POSTGRES_DB=iot_traceability
+      - POSTGRES_USER=iot_user
+      - POSTGRES_PASSWORD=iot_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - iot-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: iot-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - iot-box
+    restart: unless-stopped
+    networks:
+      - iot-network
+
+volumes:
+  redis_data:
+  postgres_data:
+
+networks:
+  iot-network:
+    driver: bridge
