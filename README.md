@@ -580,15 +580,6 @@ python src/iot_box/main.py --debug
 4. Add tests
 5. Submit a pull request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📞 Support
-
-- **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/your-repo/issues)
-- **Email**: support@yourcompany.com
 
 ## 🔮 Roadmap
 
